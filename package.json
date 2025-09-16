@@ -4,8 +4,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "create:admin": "tsx server/create-admin.ts",
+    "dev": "cross-env NODE_ENV=development tsx --env-file .env server/index.ts",
+    "create:admin": "tsx --env-file .env server/create-admin.ts",
     "build": "vite build && esbuild server/**/*.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/server/index.js",
     "check": "tsc",
@@ -51,6 +51,7 @@
     "connect-pg-simple": "^10.0.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.2",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",
