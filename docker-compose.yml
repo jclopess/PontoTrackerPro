@@ -1,0 +1,20 @@
+services:
+  # Serviço da Aplicação (Backend + Frontend)
+  app:
+    build: . # Constrói a imagem usando o Dockerfile na pasta atual
+    container_name: pointtrack_app
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env # Carrega as variáveis do arquivo .env
+    environment:
+      # Adicione esta linha para passar a SESSION_SECRET explicitamente
+      - SESSION_SECRET=${SESSION_SECRET}
+    restart: always # Reinicia o contêiner automaticamente em caso de falha
+    networks:
+      - pointtrack-net
+
+# Define a rede para comunicação entre os contêineres
+networks:
+  pointtrack-net:
+    driver: bridge
