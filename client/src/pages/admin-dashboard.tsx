@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch"; 
+import { Switch } from "@/components/ui/switch";
 import { Plus, Edit, Trash2, Users, Building, Briefcase, FileText, RotateCcw, LogOut, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -29,8 +29,8 @@ export default function AdminDashboard() {
   const [showJustificationTypeModal, setShowJustificationTypeModal] = useState(false);
 
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [itemToDelete, setItemToDelete] = useState<{type: string, data: any} | null>(null);
-  
+  const [itemToDelete, setItemToDelete] = useState<{type: string, data: any} | null>(null);
+
   const [showInactiveDepartments, setShowInactiveDepartments] = useState(false);
   const [showInactiveFunctions, setShowInactiveFunctions] = useState(false);
   const [showInactiveEmploymentTypes, setShowInactiveEmploymentTypes] = useState(false);
@@ -39,24 +39,24 @@ export default function AdminDashboard() {
 
   // Queries
   const { data: users = [], refetch: refetchUsers } = useQuery({ queryKey: ["/api/admin/users"] });
-  const { data: departments = [], refetch: refetchDepartments } = useQuery({ 
+  const { data: departments = [], refetch: refetchDepartments } = useQuery({
     queryKey: ["/api/admin/departments", showInactiveDepartments],
     queryFn: () => apiRequest("GET", `/api/admin/departments?inactive=${showInactiveDepartments}`).then(res => res.json())
   });
-  const { data: functions = [], refetch: refetchFunctions } = useQuery({ 
+  const { data: functions = [], refetch: refetchFunctions } = useQuery({
     queryKey: ["/api/admin/functions", showInactiveFunctions],
     queryFn: () => apiRequest("GET", `/api/admin/functions?inactive=${showInactiveFunctions}`).then(res => res.json())
   });
-  const { data: employmentTypes = [], refetch: refetchEmploymentTypes } = useQuery({ 
+  const { data: employmentTypes = [], refetch: refetchEmploymentTypes } = useQuery({
     queryKey: ["/api/admin/employment-types", showInactiveEmploymentTypes],
     queryFn: () => apiRequest("GET", `/api/admin/employment-types?inactive=${showInactiveEmploymentTypes}`).then(res => res.json())
   });
-  const { data: justificationTypes = [], refetch: refetchJustificationTypes } = useQuery({ 
+  const { data: justificationTypes = [], refetch: refetchJustificationTypes } = useQuery({
     queryKey: ["/api/admin/justification-types", showInactiveJustificationTypes],
     queryFn: () => apiRequest("GET", `/api/admin/justification-types?inactive=${showInactiveJustificationTypes}`).then(res => res.json())
   });
   const { data: passwordResetRequests = [], refetch: refetchResetRequests } = useQuery<PasswordResetRequest[]>({
-    queryKey: ["/api/admin/password-reset-requests"] 
+    queryKey: ["/api/admin/password-reset-requests"]
   });
 
   // REFETCH AUTOMÁTICO
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
   const createUserMutation = useMutation({
     mutationFn: (userData: any) => apiRequest("POST", "/api/admin/users", userData).then(res => res.json()),
     onSuccess: (data) => {
-      refetchUsers();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       setShowUserModal(false);
       setEditingItem(null);
       toast({
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
   const updateUserMutation = useMutation({
     mutationFn: ({ id, ...userData }: any) => apiRequest("PUT", `/api/admin/users/${id}`, userData),
     onSuccess: () => {
-      refetchUsers();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       setShowUserModal(false);
       setEditingItem(null);
       toast({ title: "Usuário atualizado com sucesso" });
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
   const createDepartmentMutation = useMutation({
     mutationFn: (deptData: any) => apiRequest("POST", "/api/admin/departments", deptData),
     onSuccess: () => {
-      refetchDepartments();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/departments"] });
       setShowDepartmentModal(false);
       setEditingItem(null);
       toast({ title: "Departamento criado com sucesso" });
@@ -131,11 +131,11 @@ export default function AdminDashboard() {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     },
   });
-  
+
   const updateDepartmentMutation = useMutation({
     mutationFn: ({ id, ...deptData }: any) => apiRequest("PUT", `/api/admin/departments/${id}`, deptData),
     onSuccess: () => {
-      refetchDepartments();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/departments"] });
       setShowDepartmentModal(false);
       setEditingItem(null);
       toast({ title: "Departamento atualizado com sucesso" });
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
   const toggleDepartmentStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number, status: boolean }) => apiRequest("PUT", `/api/admin/departments/${id}/toggle`, { status }),
     onSuccess: (_, variables) => {
-      refetchDepartments();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/departments"] });
       toast({ title: `Departamento ${variables.status ? 'reativado' : 'desativado'} com sucesso` });
     },
     onError: (error: Error) => toast({ title: "Erro", description: error.message, variant: "destructive" })
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
   const createFunctionMutation = useMutation({
     mutationFn: (funcData: any) => apiRequest("POST", "/api/admin/functions", funcData),
     onSuccess: () => {
-      refetchFunctions;
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/functions"] });
       setShowFunctionModal(false);
       setEditingItem(null);
       toast({ title: "Função criada com sucesso" });
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
   const updateFunctionMutation = useMutation({
     mutationFn: ({ id, ...funcData }: any) => apiRequest("PUT", `/api/admin/functions/${id}`, funcData),
     onSuccess: () => {
-      refetchFunctions;
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/functions"] });
       setShowFunctionModal(false);
       setEditingItem(null);
       toast({ title: "Função atualizada com sucesso" });
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
   const toggleFunctionStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number, status: boolean }) => apiRequest("PUT", `/api/admin/functions/${id}/toggle`, { status }),
     onSuccess: (_, variables) => {
-      refetchFunctions();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/functions"] });
       toast({ title: `Função ${variables.status ? 'reativada' : 'desativada'} com sucesso` });
     },
     onError: (error: Error) => toast({ title: "Erro", description: error.message, variant: "destructive" })
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
   const createEmploymentTypeMutation = useMutation({
     mutationFn: (typeData: any) => apiRequest("POST", "/api/admin/employment-types", typeData),
     onSuccess: () => {
-      refetchEmploymentTypes;
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/employment-types"] });
       setShowEmploymentTypeModal(false);
       setEditingItem(null);
       toast({ title: "Vínculo criado com sucesso" });
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
   const updateEmploymentTypeMutation = useMutation({
     mutationFn: ({ id, ...typeData }: any) => apiRequest("PUT", `/api/admin/employment-types/${id}`, typeData),
     onSuccess: () => {
-      refetchEmploymentTypes;
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/employment-types"] });
       setShowEmploymentTypeModal(false);
       setEditingItem(null);
       toast({ title: "Vínculo atualizado com sucesso" });
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
   const toggleEmploymentTypeStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number, status: boolean }) => apiRequest("PUT", `/api/admin/employment-types/${id}/toggle`, { status }),
     onSuccess: (_, variables) => {
-      refetchEmploymentTypes();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/employment-types"] });
       toast({ title: `Vínculo ${variables.status ? 'reativado' : 'desativado'} com sucesso` });
     },
     onError: (error: Error) => toast({ title: "Erro", description: error.message, variant: "destructive" })
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
   const createJustificationTypeMutation = useMutation({
     mutationFn: (typeData: any) => apiRequest("POST", "/api/admin/justification-types", typeData).then(res => res.json()),
     onSuccess: () => {
-      refetchJustificationTypes();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/justification-types"] });
       setShowJustificationTypeModal(false);
       setEditingItem(null);
       toast({ title: "Tipo de justificativa criado com sucesso" });
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
   const updateJustificationTypeMutation = useMutation({
     mutationFn: ({ id, ...typeData }: any) => apiRequest("PUT", `/api/admin/justification-types/${id}`, typeData).then(res => res.json()),
     onSuccess: () => {
-      refetchJustificationTypes();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/justification-types"] });
       setShowJustificationTypeModal(false);
       setEditingItem(null);
       toast({ title: "Tipo de justificativa atualizado com sucesso" });
@@ -254,7 +254,7 @@ export default function AdminDashboard() {
   const toggleJustificationTypeStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number, status: boolean }) => apiRequest("PUT", `/api/admin/justification-types/${id}/toggle`, { status }).then(res => res.json()),
     onSuccess: (_, variables) => {
-      refetchJustificationTypes();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/justification-types"] });
       toast({ title: `Tipo de justificativa ${variables.status ? 'reativado' : 'desativado'} com sucesso` });
     },
     onError: (error: Error) => toast({ title: "Erro", description: error.message, variant: "destructive" })
@@ -265,7 +265,7 @@ export default function AdminDashboard() {
   const handleResolvePasswordReset = (request: any) => {
     const newPassword = prompt(`Digite a NOVA senha para o usuário com CPF: ${request.cpf}`);
     if (newPassword && newPassword.length >= 6) {
-      resolvePasswordResetMutation.mutate({ 
+      resolvePasswordResetMutation.mutate({
         requestId: request.id,
         newPassword: newPassword,
       });
@@ -292,7 +292,7 @@ export default function AdminDashboard() {
         role: formData.get('role'),
         status: formData.get('status'),
     };
-    
+
     if (editingItem) {
       updateUserMutation.mutate({ id: editingItem.id, ...data });
     } else {
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
     setEditingItem(dept);
     setShowDepartmentModal(true);
   };
-  
+
   const handleDepartmentSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
       name: formData.get('name'),
       description: formData.get('description'),
     };
-    
+
     if (editingItem) {
       updateDepartmentMutation.mutate({ id: editingItem.id, ...data });
     } else {
@@ -332,14 +332,14 @@ export default function AdminDashboard() {
       name: formData.get('name'),
       description: formData.get('description'),
     };
-    
+
     if (editingItem) {
       updateFunctionMutation.mutate({ id: editingItem.id, ...data });
     } else {
       createFunctionMutation.mutate(data);
     }
   };
-  
+
   const handleOpenEmploymentTypeModal = (type: any | null = null) => {
     setEditingItem(type);
     setShowEmploymentTypeModal(true);
@@ -353,7 +353,7 @@ export default function AdminDashboard() {
       description: formData.get('description'),
       dailyWorkHours: formData.get('dailyWorkHours'),
     };
-    
+
     if (editingItem) {
       updateEmploymentTypeMutation.mutate({ id: editingItem.id, ...data });
     } else {
@@ -374,14 +374,14 @@ export default function AdminDashboard() {
       description: formData.get('description'),
       requiresDocumentation: formData.get('requiresDocumentation') === 'on',
     };
-    
+
     if (editingItem) {
       updateJustificationTypeMutation.mutate({ id: editingItem.id, ...data });
     } else {
       createJustificationTypeMutation.mutate(data);
     }
   };
-  
+
   const handleDelete = () => {
     if (!itemToDelete) return;
     switch (itemToDelete.type) {
@@ -684,7 +684,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           {/* Password Reset Requests Tab */}
       <TabsContent value="password-resets">
         <Card>
@@ -723,7 +723,7 @@ export default function AdminDashboard() {
       </TabsContent>
         </Tabs>
       </div>
-      
+
       {/* Modals */}
       {/* User Modal - Create/Edit */}
       <Dialog open={showUserModal} onOpenChange={(isOpen) => { setShowUserModal(isOpen); if (!isOpen) setEditingItem(null); }}>
@@ -859,7 +859,7 @@ export default function AdminDashboard() {
           </form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Function Modal (Create/Edit) */}
       <Dialog open={showFunctionModal} onOpenChange={(isOpen) => { setShowFunctionModal(isOpen); if (!isOpen) setEditingItem(null); }}>
         <DialogContent>
@@ -948,9 +948,9 @@ export default function AdminDashboard() {
                 <Input id="jtype-desc" name="description" defaultValue={editingItem?.description} />
               </div>
               <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox" 
-                  name="requiresDocumentation" 
+                <input
+                  type="checkbox"
+                  name="requiresDocumentation"
                   id="jtype-docs"
                   defaultChecked={editingItem?.requiresDocumentation || false}
                 />
