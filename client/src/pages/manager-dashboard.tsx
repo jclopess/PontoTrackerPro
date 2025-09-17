@@ -275,8 +275,8 @@ export default function ManagerDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <EmployeeTable 
-                employees={filteredEmployees} 
+              <EmployeeTable
+                employees={filteredEmployees}
                 timeRecords={recordsByDate}
                 onEditRecord={handleEditRecord} // Passa a função para a tabela
               />
@@ -310,9 +310,9 @@ export default function ManagerDashboard() {
                         <div className="flex space-x-2 ml-4">
                           <Button
                             size="sm"
-                            onClick={() => approveJustificationMutation.mutate({ 
-                              id: justification.id, 
-                              approved: true 
+                            onClick={() => approveJustificationMutation.mutate({
+                              id: justification.id,
+                              approved: true
                             })}
                             disabled={approveJustificationMutation.isPending}
                           >
@@ -322,9 +322,9 @@ export default function ManagerDashboard() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => approveJustificationMutation.mutate({ 
-                              id: justification.id, 
-                              approved: false 
+                            onClick={() => approveJustificationMutation.mutate({
+                              id: justification.id,
+                              approved: false
                             })}
                             disabled={approveJustificationMutation.isPending}
                           >
@@ -364,8 +364,7 @@ export default function ManagerDashboard() {
       />
       <ChangePasswordModal //Modal for changing password
         open={showChangePasswordModal}
-        onSuccess={() => {
-        }}
+        onSuccess={() => setShowChangePasswordModal(false)}
       />
     </div>
   );

@@ -40,7 +40,7 @@ export default function HomePage() {
 
   const { data: timeRecords = [], refetch: refetchTimeRecords } = useQuery({
     queryKey: ["/api/time-records", selectedMonth, user?.id],
-    queryFn: () => 
+    queryFn: () =>
       apiRequest("GET", `/api/time-records?month=${selectedMonth}`).then(res => res.json()),
     enabled: user?.role === "employee" && !user?.mustChangePassword,
   });
@@ -56,7 +56,7 @@ export default function HomePage() {
       refetchTimeRecords();
     }
   }, [selectedMonth, user, refetchTimeRecords]);
-  
+
   useEffect(() => {
     if (user?.mustChangePassword) {
       setShowChangePasswordModal(true);
@@ -99,10 +99,10 @@ export default function HomePage() {
 
   const getNextAvailableTime = () => {
     if (!todayRecord) return "Agora";
-    
+
     const lastTime = todayRecord.exit2 || todayRecord.entry2 || todayRecord.exit1 || todayRecord.entry1;
     if (!lastTime) return "Agora";
-    
+
     const [hours, minutes] = lastTime.split(':').map(Number);
     const nextHour = hours + 1;
     return `${String(nextHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -203,7 +203,7 @@ export default function HomePage() {
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Registros do Dia</h3>
-                
+
                 <TimeRegistrationGrid timeRecord={todayRecord} />
 
                 <div className="text-center mt-8">
@@ -235,7 +235,7 @@ export default function HomePage() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Histórico de Registros</h3>
                   </div>
-                  
+
                   <div className="mt-4 space-y-4">
                     <div>
                       <label htmlFor="month-filter" className="block text-sm font-medium text-gray-700 mb-2">
@@ -277,12 +277,12 @@ export default function HomePage() {
                       Nova
                     </Button>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {justifications.slice(0, 3).map((justification: any) => (
                       <div key={justification.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                         <div className="flex-shrink-0">
-                          <Badge variant={justification.status === "pending" ? "secondary" : 
+                          <Badge variant={justification.status === "pending" ? "secondary" :
                                         justification.status === "approved" ? "default" : "destructive"}>
                             {justification.status === "pending" ? "Pendente" :
                              justification.status === "approved" ? "Aprovado" : "Rejeitado"}
@@ -335,8 +335,7 @@ export default function HomePage() {
       />
       <ChangePasswordModal //Modal for changing password
         open={showChangePasswordModal}
-        onSuccess={() => {
-        }}
+        onSuccess={() => setShowChangePasswordModal(false)}
       />
     </div>
   );

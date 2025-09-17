@@ -108,23 +108,43 @@ export function registerRoutes(app: Express): Server {
   app.put("/api/admin/users/:id", requireAdmin, async (req, res, next) => {
     try {
         const id = parseInt(req.params.id);
-        const validatedData = insertUserSchema.omit({ password: true }).partial().parse(req.body);
+        const { password, ...userData } = req.body;
+        
+        let dataToUpdate: Partial<InsertUser> = {};
 
-        // Verificação de duplicados antes de atualizar
-        if (validatedData.cpf) {
-            const existingUser = await storage.getUserByCpf(validatedData.cpf);
-            if (existingUser && existingUser.id !== id) {
-                return res.status(409).json({ message: `O CPF ${validatedData.cpf} já pertence a outro usuário.` });
-            }
+        // Se uma nova senha foi fornecida, hasheia ela
+        if (password && typeof password === 'string' && password.length >= 6) {
+            dataToUpdate.password = await hashPassword(password);
+        } else if (password) {
+            return res.status(400).json({ message: "A senha deve ter pelo menos 6 caracteres." });
         }
-        if (validatedData.username) {
-            const existingUser = await storage.getUserByUsername(validatedData.username);
-            if (existingUser && existingUser.id !== id) {
-                return res.status(409).json({ message: `O nome de usuário "${validatedData.username}" já pertence a outro usuário.` });
+        
+        // Valida os outros dados do usuário, se existirem
+        if (Object.keys(userData).length > 0) {
+            const validatedData = insertUserSchema.omit({ password: true }).partial().parse(userData);
+
+            // Verificação de duplicados antes de atualizar
+            if (validatedData.cpf) {
+                const existingUser = await storage.getUserByCpf(validatedData.cpf);
+                if (existingUser && existingUser.id !== id) {
+                    return res.status(409).json({ message: `O CPF ${validatedData.cpf} já pertence a outro usuário.` });
+                }
             }
+            if (validatedData.username) {
+                const existingUser = await storage.getUserByUsername(validatedData.username);
+                if (existingUser && existingUser.id !== id) {
+                    return res.status(409).json({ message: `O nome de usuário "${validatedData.username}" já pertence a outro usuário.` });
+                }
+            }
+            
+            dataToUpdate = { ...dataToUpdate, ...validatedData };
         }
 
-        const updatedUser = await storage.updateUser(id, validatedData);
+        if (Object.keys(dataToUpdate).length === 0) {
+            return res.status(400).json({ message: "Nenhum dado para atualizar." });
+        }
+
+        const updatedUser = await storage.updateUser(id, dataToUpdate);
         if (!updatedUser) {
             return res.status(404).json({ message: "Usuário não encontrado" });
         }
