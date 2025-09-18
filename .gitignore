@@ -7,3 +7,6 @@ vite.config.ts.*
 .env
 *.log
 *.sqlite
+launch.json
+task.json
+settings.json

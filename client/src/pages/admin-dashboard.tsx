@@ -75,6 +75,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     refetchJustificationTypes();
   }, [showInactiveJustificationTypes, refetchJustificationTypes]);
+  useEffect(() => {
+    refetchResetRequests();
+  }, [refetchResetRequests]);
 
   // Mutations for User
   const createUserMutation = useMutation({
