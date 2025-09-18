@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { differenceInDays } from "date-fns";
 
 interface ReportModalProps {
   open: boolean;
@@ -16,28 +17,45 @@ interface ReportModalProps {
 export function ReportModal({ open, onOpenChange, employees }: ReportModalProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    employeeId: "", // Inicia sem seleção
+    employeeId: "",
     month: new Date().toISOString().slice(0, 7),
-    reportType: "summary", // Mantido para futuras implementações
+    startDate: "",
+    endDate: "",
   });
 
-  // --- FUNÇÃO ATUALIZADA ---
   const handleGenerateReport = () => {
-    if (!formData.employeeId) {
+    if (!formData.employeeId || !formData.startDate || !formData.endDate || !formData.month) {
       toast({
-        title: "Seleção necessária",
-        description: "Por favor, selecione um funcionário.",
+        title: "Campos obrigatórios",
+        description: "Por favor, selecione um funcionário, o mês de referência e o período completo.",
         variant: "destructive",
       });
       return;
     }
 
-    // Constrói a URL para a API
-    const url = `/api/manager/report/monthly?userId=${formData.employeeId}&month=${formData.month}`;
-    
-    // Abre a URL em uma nova aba, o que iniciará o download
-    window.open(url, '_blank');
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
 
+    if (end < start) {
+      toast({
+        title: "Intervalo de datas inválido",
+        description: "A data final não pode ser anterior à data inicial.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (differenceInDays(end, start) > 31) {
+      toast({
+        title: "Intervalo de datas inválido",
+        description: "O período selecionado não pode ser maior que 31 dias.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const url = `/api/manager/report/monthly?userId=${formData.employeeId}&month=${formData.month}&startDate=${formData.startDate}&endDate=${formData.endDate}`;
+    window.open(url, '_blank');
     onOpenChange(false);
   };
 
@@ -59,7 +77,7 @@ export function ReportModal({ open, onOpenChange, employees }: ReportModalProps)
         <DialogHeader>
           <DialogTitle>Gerar Relatório de Fechamento</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Funcionário</Label>
@@ -68,11 +86,9 @@ export function ReportModal({ open, onOpenChange, employees }: ReportModalProps)
                 onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
               >
                 <SelectTrigger>
-                  {/* Atualizado para um placeholder */}
                   <SelectValue placeholder="Selecione um funcionário" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* Removida a opção "Todos os funcionários" por enquanto */}
                   {employees.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id.toString()}>
                       {employee.name}
@@ -82,7 +98,7 @@ export function ReportModal({ open, onOpenChange, employees }: ReportModalProps)
               </Select>
             </div>
             <div>
-              <Label>Período</Label>
+              <Label>Mês de Referência (para o título)</Label>
               <Select
                 value={formData.month}
                 onValueChange={(value) => setFormData({ ...formData, month: value })}
@@ -100,21 +116,28 @@ export function ReportModal({ open, onOpenChange, employees }: ReportModalProps)
               </Select>
             </div>
           </div>
-          {/* O tipo de relatório é mantido para o futuro */}
           <div>
-            <Label>Tipo de Relatório</Label>
-            <RadioGroup
-              value={formData.reportType}
-              onValueChange={(value) => setFormData({ ...formData, reportType: value })}
-              className="mt-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="summary" id="summary" />
-                <Label htmlFor="summary" className="text-sm">
-                  Resumo mensal com banco de horas
-                </Label>
-              </div>
-            </RadioGroup>
+            <Label>Período do Relatório</Label>
+            <div className="grid grid-cols-2 gap-4 mt-2">
+               <div>
+                 <Label htmlFor="start-date" className="text-sm text-muted-foreground">Data de Início</Label>
+                 <Input
+                   id="start-date"
+                   type="date"
+                   value={formData.startDate}
+                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                 />
+               </div>
+               <div>
+                 <Label htmlFor="end-date" className="text-sm text-muted-foreground">Data de Fim</Label>
+                 <Input
+                   id="end-date"
+                   type="date"
+                   value={formData.endDate}
+                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                 />
+               </div>
+            </div>
           </div>
         </div>
         <div className="flex justify-end space-x-3">

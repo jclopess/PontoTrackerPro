@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { generateMonthlyReportPDF } from "./pdf-generator";
 import { insertTimeRecordSchema, insertJustificationSchema, insertDepartmentSchema, insertUserSchema, insertFunctionSchema, insertEmploymentTypeSchema, insertJustificationTypeSchema, type InsertUser } from "../shared/schema";
 import { z } from "zod";
-import { format, startOfMonth, subMonths, addDays, isBefore } from 'date-fns';
+import { format, startOfMonth, subMonths, addDays, isBefore, differenceInDays } from 'date-fns';
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -126,6 +126,7 @@ export function registerRoutes(app: Express): Server {
         next(error);
     }
   });
+
 
   // Departments
   app.get("/api/admin/departments", requireAdmin, async (req, res) => {
@@ -312,10 +313,7 @@ export function registerRoutes(app: Express): Server {
           return res.status(404).json({ message: "Solicitação não encontrada ou já resolvida." });
       }
       const hashedPassword = await hashPassword(newPassword);
-      await storage.updateUser(request.userId, {
-        password: hashedPassword,
-        mustChangePassword: true
-      });
+      await storage.updateUser(request.userId, { password: hashedPassword, mustChangePassword: true });
       await storage.resolvePasswordResetRequest(requestId, adminId);
 
       res.status(200).json({ message: "Senha redefinida com sucesso." });
@@ -629,7 +627,7 @@ export function registerRoutes(app: Express): Server {
       const referenceDate = new Date(`${month}-02T12:00:00Z`);
       const startDate = format(startOfMonth(referenceDate), 'yyyy-MM-dd');
       const endDate = format(new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0), 'yyyy-MM-dd');
-      
+
       const hourBank = await storage.calculateHourBank(userId, startDate, endDate);
       res.json(hourBank);
     } catch (error) {
@@ -638,12 +636,8 @@ export function registerRoutes(app: Express): Server {
   });
 
   // --- Report Generation ---
-  
-  const handleReportGeneration = async (userId: number, month: string) => {
-    const referenceDate = new Date(`${month}-02T12:00:00Z`);
-    const startDate = format(addDays(startOfMonth(subMonths(referenceDate, 1)), 20), 'yyyy-MM-dd');
-    const endDate = format(addDays(startOfMonth(referenceDate), 19), 'yyyy-MM-dd');
 
+  const handleReportGeneration = async (userId: number, month: string, startDate: string, endDate: string) => {
     const user = await storage.getUser(userId);
     if (!user) throw new Error("Usuário não encontrado.");
 
@@ -664,14 +658,29 @@ export function registerRoutes(app: Express): Server {
     });
   };
 
+  const reportValidationSchema = z.object({
+    userId: z.string().regex(/^\d+$/),
+    month: z.string().regex(/^\d{4}-\d{2}$/),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  });
+
   app.get("/api/manager/report/monthly", requireManagerOrAdmin, async (req, res, next) => {
     try {
-      const { userId, month } = req.query;
-      if (!userId || !month || typeof userId !== 'string' || typeof month !== 'string') {
-        return res.status(400).json({ message: "Parâmetros 'userId' e 'month' são obrigatórios." });
+      const validation = reportValidationSchema.safeParse(req.query);
+      if (!validation.success) {
+        return res.status(400).json({ message: "Parâmetros inválidos.", errors: validation.error.flatten() });
+      }
+      const { userId, month, startDate, endDate } = validation.data;
+
+      // Validação do intervalo de datas
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (differenceInDays(end, start) > 31) {
+        return res.status(400).json({ message: "O intervalo entre as datas não pode exceder 31 dias." });
       }
 
-      const pdfBuffer = await handleReportGeneration(parseInt(userId), month);
+      const pdfBuffer = await handleReportGeneration(parseInt(userId), month, startDate, endDate);
       const user = await storage.getUser(parseInt(userId));
 
       res.setHeader('Content-Type', 'application/pdf');
@@ -684,13 +693,21 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/user/report/monthly", requireAuth, async (req, res, next) => {
     try {
+      const validation = reportValidationSchema.omit({ userId: true }).safeParse(req.query);
+       if (!validation.success) {
+        return res.status(400).json({ message: "Parâmetros inválidos.", errors: validation.error.flatten() });
+      }
+      const { month, startDate, endDate } = validation.data;
       const userId = req.user.id;
-      const { month } = req.query;
-      if (!month || typeof month !== 'string') {
-        return res.status(400).json({ message: "O parâmetro 'month' é obrigatório." });
+
+      // Validação do intervalo de datas
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (differenceInDays(end, start) > 31) {
+        return res.status(400).json({ message: "O intervalo entre as datas não pode exceder 31 dias." });
       }
 
-      const pdfBuffer = await handleReportGeneration(userId, month);
+      const pdfBuffer = await handleReportGeneration(userId, month, startDate, endDate);
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename=relatorio-${req.user.username}-${month}.pdf`);
@@ -699,8 +716,7 @@ export function registerRoutes(app: Express): Server {
       next(error);
     }
   });
-
-
+  
   const httpServer = createServer(app);
   return httpServer;
 }

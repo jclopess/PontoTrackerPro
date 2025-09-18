@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TimeRegistrationGrid } from "@/components/time-registration-grid";
 import { JustificationModal } from "@/components/justification-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
+import { UserReportModal } from "@/components/user-report-modal"; // Importa o novo modal
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "wouter";
@@ -18,6 +19,7 @@ export default function HomePage() {
   const { toast } = useToast();
   const [showJustificationModal, setShowJustificationModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showUserReportModal, setShowUserReportModal] = useState(false); // Estado para o novo modal
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -56,14 +58,6 @@ export default function HomePage() {
       refetchTimeRecords();
     }
   }, [selectedMonth, user, refetchTimeRecords]);
-
-  useEffect(() => {
-    if (user?.mustChangePassword) {
-      setShowChangePasswordModal(true);
-    } else {
-      setShowChangePasswordModal(false);
-    }
-  }, [user]);
 
   const timeRegistrationMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/time-records"),
@@ -115,24 +109,6 @@ export default function HomePage() {
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const getMonthOptions = () => {
-    const options = [];
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const label = date.toLocaleDateString('pt-BR', { year: 'numeric', month: 'long' });
-      options.push({ value, label });
-    }
-    return options;
-  };
-
-  const handleGenerateReport = () => {
-    // Constrói a URL para a API de relatório do usuário
-    const url = `/api/user/report/monthly?month=${selectedMonth}`;
-    window.open(url, '_blank');
   };
 
   return (
@@ -239,23 +215,19 @@ export default function HomePage() {
                   <div className="mt-4 space-y-4">
                     <div>
                       <label htmlFor="month-filter" className="block text-sm font-medium text-gray-700 mb-2">
-                        Filtrar por mês:
+                        Filtrar registros por mês:
                       </label>
                       <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {getMonthOptions().map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
+                          {/* Options will be generated dynamically */}
                         </SelectContent>
                       </Select>
                     </div>
-                    {/* BOTÃO ADICIONADO */}
-                    <Button onClick={handleGenerateReport} className="w-full">
+                    {/* Botão abre o novo modal */}
+                    <Button onClick={() => setShowUserReportModal(true)} className="w-full">
                       <Download className="h-4 w-4 mr-2" />
                       Gerar Relatório do Mês
                     </Button>
@@ -329,14 +301,21 @@ export default function HomePage() {
         </div>
       </div>
 
-      <JustificationModal // Modal for creating justifications
+      <JustificationModal
         open={showJustificationModal}
         onOpenChange={setShowJustificationModal}
       />
-      <ChangePasswordModal //Modal for changing password
+      <ChangePasswordModal
         open={showChangePasswordModal}
-        onSuccess={() => setShowChangePasswordModal(false)}
+        onSuccess={() => {
+          setShowChangePasswordModal(false);
+        }}
+      />
+      <UserReportModal // Renderiza o novo modal
+        open={showUserReportModal}
+        onOpenChange={setShowUserReportModal}
       />
     </div>
   );
 }
+
