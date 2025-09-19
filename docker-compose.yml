@@ -1,20 +1,46 @@
 services:
   # Serviço da Aplicação (Backend + Frontend)
   app:
-    build: . # Constrói a imagem usando o Dockerfile na pasta atual
+    build: .
     container_name: pointtrack_app
     ports:
       - "5000:5000"
     env_file:
-      - .env # Carrega as variáveis do arquivo .env
+      - .env
     environment:
-      # Adicione esta linha para passar a SESSION_SECRET explicitamente
       - SESSION_SECRET=${SESSION_SECRET}
-    restart: always # Reinicia o contêiner automaticamente em caso de falha
+      - DATABASE_URL=${DATABASE_URL}
+    #restart: always
+    # A aplicação depende do serviço 'db' para estar pronto
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - pointtrack-net
 
-# Define a rede para comunicação entre os contêineres
+  db:
+    image: postgres:17
+    container_name: pointtrack_db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - pointtrack-net
+
+# Define a rede para comunicação entre os contentores
 networks:
   pointtrack-net:
     driver: bridge
+
+# Define o volume para persistir os dados do banco de dados
+volumes:
+  postgres_data:

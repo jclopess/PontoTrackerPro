@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
-  "scripts": {
+"scripts": {
     "dev": "cross-env NODE_ENV=development tsx --env-file .env server/index.ts",
     "create:admin": "tsx --env-file .env server/create-admin.ts",
-    "build": "vite build && esbuild server/**/*.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build": "vite build && esbuild server/**/*.ts --platform=node --packages=external --bundle --format=esm --outdir=dist/server",
     "start": "NODE_ENV=production node dist/server/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:push:docker": "drizzle-kit up:pg",
-    "create:admin:docker": "tsx server/create-admin.ts"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node dist/server/migrate.js",
+    "create:admin:docker": "node dist/server/create-admin.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
