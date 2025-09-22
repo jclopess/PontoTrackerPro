@@ -59,6 +59,7 @@ export interface IStorage {
 
   // Justification methods
   createJustification(justification: InsertJustification): Promise<Justification>;
+  createBulkJustifications(data: { userIds: number[], date: string, type: string, reason: string, managerId: number }): Promise<{ count: number }>;
   getJustificationById(id: number): Promise<(Justification & { user: User }) | undefined>;
   getJustificationsForUser(userId: number): Promise<Justification[]>;
   getJustificationsForUserByDateRange(userId: number, startDate: string, endDate: string): Promise<Justification[]>;
@@ -127,6 +128,11 @@ export class DatabaseStorage {
     return justificationType || undefined;
   }
 
+  async getJustificationTypeByName(name: string): Promise<JustificationType | undefined> {
+    const [justificationType] = await db.select().from(justificationTypes).where(eq(justificationTypes.name, name));
+    return justificationType || undefined;
+  }
+  
   async getAllJustificationTypes(showInactive: boolean = false): Promise<JustificationType[]> {
     if (showInactive) {
       return await db.select().from(justificationTypes);
@@ -356,6 +362,31 @@ export class DatabaseStorage {
     return newJustification;
   }
 
+  async createBulkJustifications(data: { userIds: number[], date: string, type: string, reason: string, managerId: number }): Promise<{ count: number }> {
+    const { userIds, date, type, reason, managerId } = data;
+  
+    const justificationType = await this.getJustificationTypeByName(type);
+    const abona_horas = ["vacation", "health-problems", "family-issue", "training"].includes(type);
+  
+    const justificationsToInsert = userIds.map(userId => ({
+      userId,
+      date,
+      type,
+      reason,
+      abona_horas,
+      status: "approved" as const,
+      approvedBy: managerId,
+      approvedAt: new Date(),
+    }));
+  
+    if (justificationsToInsert.length === 0) {
+      return { count: 0 };
+    }
+  
+    const result = await db.insert(justifications).values(justificationsToInsert);
+    return { count: result.rowCount };
+  }
+
   async getJustificationById(id: number): Promise<(Justification & { user: User }) | undefined> {
     const [result] = await db
       .select()
@@ -554,4 +585,5 @@ export class DatabaseStorage {
 }
 
 export const storage = new DatabaseStorage();
+
 

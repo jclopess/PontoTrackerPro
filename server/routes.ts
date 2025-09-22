@@ -539,6 +539,25 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.post("/api/manager/justifications/bulk", requireManagerOrAdmin, async (req, res, next) => {
+    try {
+      const manager = req.user;
+      const { userIds, date, type, reason } = req.body;
+
+      const result = await storage.createBulkJustifications({
+        userIds,
+        date,
+        type,
+        reason,
+        managerId: manager.id,
+      });
+
+      res.status(201).json({ message: `${result.count} justificativas criadas com sucesso.` });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/manager/justifications/pending", requireManagerOrAdmin, async (req, res, next) => {
     try {
       const managerDepartmentId = req.user.role === 'admin' ? undefined : req.user.departmentId;

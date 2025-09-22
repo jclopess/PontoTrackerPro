@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertTriangle } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface ManagerJustificationModalProps {
@@ -26,18 +27,25 @@ export function ManagerJustificationModal({ open, onOpenChange, employees, onSuc
     type: "",
     reason: "",
   });
+  const [forAllEmployees, setForAllEmployees] = useState(false);
 
   // Limpa o formulário quando o modal é fechado
   useEffect(() => {
     if (!open) {
       setFormData({ userId: "", date: "", type: "", reason: "" });
+      setForAllEmployees(false);
     }
   }, [open]);
 
   const createJustificationMutation = useMutation({
-    mutationFn: (data: typeof formData) => apiRequest("POST", "/api/manager/justifications", data),
+    mutationFn: (data: any) => {
+      if (forAllEmployees) {
+        return apiRequest("POST", "/api/manager/justifications/bulk", data);
+      }
+      return apiRequest("POST", "/api/manager/justifications", data);
+    },
     onSuccess: () => {
-      toast({ title: "Justificativa criada com sucesso!" });
+      toast({ title: "Justificativa(s) criada(s) com sucesso!" });
       onSuccess();
       onOpenChange(false);
     },
@@ -52,11 +60,24 @@ export function ManagerJustificationModal({ open, onOpenChange, employees, onSuc
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.userId || !formData.date || !formData.type || !formData.reason) {
+    if ((!formData.userId && !forAllEmployees) || !formData.date || !formData.type || !formData.reason) {
       toast({ title: "Erro", description: "Todos os campos são obrigatórios.", variant: "destructive" });
       return;
     }
-    createJustificationMutation.mutate(formData);
+    
+    let submissionData: any = {
+      date: formData.date,
+      type: formData.type,
+      reason: formData.reason,
+    };
+
+    if (forAllEmployees) {
+      submissionData.userIds = employees.map(e => e.id);
+    } else {
+      submissionData.userId = formData.userId;
+    }
+
+    createJustificationMutation.mutate(submissionData);
   };
 
   // Fetch justification types from API
@@ -66,7 +87,7 @@ export function ManagerJustificationModal({ open, onOpenChange, employees, onSuc
   });
 
   // Transform API data to match expected format - only active types
-  const typeOptions = justificationTypes?.filter(type => type.isActive).map(type => ({
+  const typeOptions = justificationTypes?.filter((type:any) => type.isActive).map((type:any) => ({
     value: type.name,
     label: type.name,
     description: type.description,
@@ -83,11 +104,20 @@ export function ManagerJustificationModal({ open, onOpenChange, employees, onSuc
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="for-all-employees"
+              checked={forAllEmployees}
+              onCheckedChange={(checked) => setForAllEmployees(checked as boolean)}
+            />
+            <Label htmlFor="for-all-employees">Lançar para todos os funcionários</Label>
+          </div>
           <div>
             <Label htmlFor="employee-select">Funcionário</Label>
             <Select
               value={formData.userId}
               onValueChange={(value) => setFormData({ ...formData, userId: value })}
+              disabled={forAllEmployees}
             >
               <SelectTrigger id="employee-select">
                 <SelectValue placeholder="Selecione um funcionário" />
