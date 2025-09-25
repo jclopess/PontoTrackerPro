@@ -15,7 +15,7 @@ import { ChangePasswordModal } from "@/components/change-password-modal";
 import { ManagerJustificationModal } from "@/components/manager-justification-modal";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { type TimeRecord } from "@shared/schema";
+import { type TimeRecord, type Justification } from "@shared/schema";
 
 const justificationTypeLabels: { [key: string]: string } = {
   absence: "Falta",
@@ -36,17 +36,15 @@ export default function ManagerDashboard() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
 
-  // Estados para o modal de registro de ponto
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedEmployee, setSelectedEmployee] = useState("all");
-  const [editingRecord, setEditingRecord] = useState<TimeRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<Partial<TimeRecord> | null>(null);
   const [showTimeRecordModal, setShowTimeRecordModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showManagerJustificationModal, setShowManagerJustificationModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const today = new Date().toISOString().split('T')[0];
 
-  // Verifica se o usuário precisa mudar a senha
   useEffect(() => {
     if (user?.mustChangePassword) {
       setShowChangePasswordModal(true);
@@ -55,11 +53,16 @@ export default function ManagerDashboard() {
     }
   }, [user]);
 
-  // A query de registros agora é dinâmica com base na data selecionada
   const { data: recordsByDate = [], refetch: refetchRecordsByDate } = useQuery({
     queryKey: ["/api/manager/time-records", selectedDate, user?.id],
     queryFn: ({ queryKey }) => apiRequest("GET", `${queryKey[0]}/${queryKey[1]}`).then(res => res.json()),
     enabled: !!user,
+  });
+
+  const { data: justificationsByDate = [], refetch: refetchJustificationsByDate } = useQuery<Justification[]>({
+      queryKey: ["/api/manager/justifications/by-date", selectedDate, user?.id],
+      queryFn: ({ queryKey }) => apiRequest("GET", `${queryKey[0]}/${queryKey[1]}`).then(res => res.json()),
+      enabled: !!user && !user?.mustChangePassword,
   });
 
   const { data: employees = [], refetch: refetchEmployees } = useQuery({
@@ -68,7 +71,6 @@ export default function ManagerDashboard() {
     enabled: !!user && !user?.mustChangePassword,
   });
 
-  //Talvez seja necessário comentar para evitar conflitos com o novo endpoint
   const { data: todayRecords = [] } = useQuery({
     queryKey: ["/api/manager/time-records", today, user?.id],
     queryFn: ({ queryKey }) => apiRequest("GET", `${queryKey[0]}/${queryKey[1]}`).then(res => res.json()),
@@ -86,6 +88,7 @@ export default function ManagerDashboard() {
       apiRequest("POST", `/api/manager/justifications/${id}/approve`, { approved }),
     onSuccess: () => {
       refetchJustifications();
+      refetchJustificationsByDate();
       toast({
         title: "Justificativa processada",
         description: "A justificativa foi processada com sucesso.",
@@ -114,7 +117,7 @@ export default function ManagerDashboard() {
 
   const stats = getStats();
 
-  const handleEditRecord = (record: TimeRecord) => {
+  const handleEditRecord = (record: Partial<TimeRecord>) => {
     setEditingRecord(record);
     setShowTimeRecordModal(true);
   };
@@ -278,7 +281,9 @@ export default function ManagerDashboard() {
               <EmployeeTable
                 employees={filteredEmployees}
                 timeRecords={recordsByDate}
-                onEditRecord={handleEditRecord} // Passa a função para a tabela
+                justifications={justificationsByDate}
+                selectedDate={selectedDate}
+                onEditRecord={handleEditRecord}
               />
             </CardContent>
           </Card>
@@ -352,15 +357,17 @@ export default function ManagerDashboard() {
         onOpenChange={setShowManagerJustificationModal}
         employees={employees}
         onSuccess={() => {
-          // Adicione aqui os refetches necessários se precisar atualizar outras listas
           refetchJustifications();
+          refetchJustificationsByDate();
         }}
       />
       <TimeRecordModal // Modal for creating or editing time records
         record={editingRecord}
         open={showTimeRecordModal}
         onOpenChange={setShowTimeRecordModal}
-        onSuccess={refetchRecordsByDate}
+        onSuccess={() => {
+            refetchRecordsByDate();
+        }}
       />
       <ChangePasswordModal //Modal for changing password
         open={showChangePasswordModal}
