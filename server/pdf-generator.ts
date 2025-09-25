@@ -145,17 +145,27 @@ function generateTable(doc: PDFKit.PDFDocument, data: ReportData) {
         doc.text(dailyHoursString, startX + itemWidth * 5, rowY, { ...textOptions, align: 'right' });
     } else {
         let textToDisplay = "Sem registro";
+        let totalHoursText = "--:--";
         let color = "gray";
 
         if (justification) {
             const label = justificationTypeLabels[justification.type] || justification.type;
-            textToDisplay = justification.abona_horas ? `${label} (Abonado)` : label;
+            textToDisplay = label;
             color = justification.type === 'holiday' ? 'red' : 'blue';
+
+            if (justification.abona_horas) {
+                textToDisplay = `${label} (Abonado)`;
+                totalHoursText = decimalToHHMM(data.user.dailyWorkHours);
+            } else {
+                totalHoursText = "00:00";
+            }
         } else if (dayOfWeek === 0 || dayOfWeek === 6) {
             textToDisplay = "Final de Semana";
+            totalHoursText = "00:00";
         }
         
         doc.fillColor(color).text(textToDisplay, startX + itemWidth, rowY, { width: itemWidth * 4, align: 'center' }).fillColor('black');
+        doc.font(FONT_NORMAL).fontSize(7).text(totalHoursText, startX + itemWidth * 5, rowY, { width: itemWidth, align: 'right' });
     }
     doc.moveDown(0.75);
   });
@@ -174,9 +184,9 @@ function generateFooter(doc: PDFKit.PDFDocument, data: ReportData) {
     doc.fontSize(12).font(FONT_BOLD).text('Resumo do Período', startX, footerY);
     
     doc.fontSize(10).font(FONT_NORMAL);
-    doc.text(`Horas esperadas: ${decimalToHHMM(data.hourBank.expectedHours)}`, startX, footerY + 15);
+    //doc.text(`Horas esperadas: ${decimalToHHMM(data.hourBank.expectedHours)}`, startX, footerY + 15);
     doc.text(`Horas trabalhadas: ${decimalToHHMM(data.hourBank.workedHours)}`, startX, footerY + 30);
-    doc.font(FONT_BOLD).text(`Saldo do período: ${decimalToHHMM(data.hourBank.balance)}`, startX, footerY + 15,  { align: 'right'});
+    //doc.font(FONT_BOLD).text(`Saldo do período: ${decimalToHHMM(data.hourBank.balance)}`, startX, footerY + 15,  { align: 'right'});
     doc.font(FONT_NORMAL).text(`Total de justificativas aprovadas: ${data.approvedJustifications.length}`, startX, footerY + 30, { align: 'right'});
 
     const signatureY = doc.page.height - 80;
