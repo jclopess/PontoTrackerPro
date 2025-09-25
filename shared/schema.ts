@@ -48,7 +48,7 @@ export const passwordResetRequests = pgTable("password_reset_requests", {
   userId: integer("user_id").notNull().references(() => users.id),
   cpf: text("cpf").notNull(),
   requestedAt: timestamp("requested_at").defaultNow().notNull(),
-  status: text("status").notNull().default("pending"), // "pending", "resolved"
+  status: text("status").notNull().default("pending"), // "pending", "resolved", "canceled"
   resolvedBy: integer("resolved_by").references(() => users.id),
   resolvedAt: timestamp("resolved_at"),
 });
@@ -244,19 +244,14 @@ export const insertHourBankSchema = createInsertSchema(hourBank).omit({
 // Types
 export type Department = typeof departments.$inferSelect;
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
-
 export type Function = typeof functions.$inferSelect;
 export type InsertFunction = z.infer<typeof insertFunctionSchema>;
-
 export type EmploymentType = typeof employmentTypes.$inferSelect;
 export type InsertEmploymentType = z.infer<typeof insertEmploymentTypeSchema>;
-
 export type JustificationType = typeof justificationTypes.$inferSelect;
 export type InsertJustificationType = z.infer<typeof insertJustificationTypeSchema>;
-
 export type PasswordResetRequest = typeof passwordResetRequests.$inferSelect;
 export type InsertPasswordResetRequest = z.infer<typeof insertPasswordResetRequestSchema>;
-
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type TimeRecord = typeof timeRecords.$inferSelect;

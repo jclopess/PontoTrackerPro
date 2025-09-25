@@ -1,6 +1,6 @@
 import { departments, users, timeRecords, justifications, hourBank, functions, employmentTypes, justificationTypes, passwordResetRequests, type Department, type InsertDepartment, type User, type InsertUser, type TimeRecord, type InsertTimeRecord, type Justification, type InsertJustification, type HourBank, type InsertHourBank, type Function, type InsertFunction, type EmploymentType, type InsertEmploymentType, type JustificationType, type InsertJustificationType, type PasswordResetRequest, type InsertPasswordResetRequest } from "../shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, between } from "drizzle-orm"; 
+import { eq, and, desc, asc, between } from "drizzle-orm"; 
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -76,6 +76,7 @@ export interface IStorage {
   createPasswordResetRequest(request: InsertPasswordResetRequest): Promise<PasswordResetRequest>;
   getPendingPasswordResetRequests(): Promise<PasswordResetRequest[]>;
   resolvePasswordResetRequest(id: number, resolverId: number): Promise<PasswordResetRequest | undefined>;
+  cancelPasswordResetRequest(id: number): Promise<PasswordResetRequest | undefined>;
 
   sessionStore: any;
 }
@@ -578,6 +579,15 @@ export class DatabaseStorage {
         resolvedBy: resolverId,
         resolvedAt: new Date()
       })
+      .where(eq(passwordResetRequests.id, id))
+      .returning();
+    return request || undefined;
+  }
+
+  async cancelPasswordResetRequest(id: number): Promise<PasswordResetRequest | undefined> {
+    const [request] = await db
+      .update(passwordResetRequests)
+      .set({ status: "canceled" })
       .where(eq(passwordResetRequests.id, id))
       .returning();
     return request || undefined;

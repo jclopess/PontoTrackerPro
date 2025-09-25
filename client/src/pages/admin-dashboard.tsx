@@ -122,6 +122,18 @@ export default function AdminDashboard() {
     },
   });
 
+  const cancelPasswordResetMutation = useMutation({
+    mutationFn: (requestId: number) =>
+      apiRequest("POST", `/api/admin/password-reset/${requestId}/cancel`),
+    onSuccess: () => {
+      refetchResetRequests();
+      toast({ title: "Solicitação cancelada com sucesso!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao cancelar solicitação", description: error.message, variant: "destructive" });
+    },
+  });
+
   const createDepartmentMutation = useMutation({
     mutationFn: (deptData: any) => apiRequest("POST", "/api/admin/departments", deptData),
     onSuccess: () => {
@@ -713,12 +725,23 @@ export default function AdminDashboard() {
                       Solicitado em: {new Date(request.requestedAt).toLocaleString('pt-BR')}
                     </p>
                   </div>
-                  <Button
-                    onClick={() => handleResolvePasswordReset(request)}
-                    disabled={resolvePasswordResetMutation.isPending}
-                  >
-                    Resolver
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      onClick={() => handleResolvePasswordReset(request)}
+                      disabled={resolvePasswordResetMutation.isPending}
+                    >
+                      Resolver
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => cancelPasswordResetMutation.mutate(request.id)}
+                      disabled={cancelPasswordResetMutation.isPending}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Cancelar
+                    </Button>
+                  </div>
                 </div>
               ))}
               {passwordResetRequests.length === 0 && (
