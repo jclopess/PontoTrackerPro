@@ -183,7 +183,7 @@ export default function ManagerDashboard() {
                 </div>
                 <div className="mt-4 lg:mt-0 flex space-x-3">
                   <Button onClick={() => setShowManagerJustificationModal(true)}>
-                    <PlusCircle className="h-4 w-4 mr-2" />Lançar Afastamento</Button>
+                    <PlusCircle className="h-4 w-4 mr-2" />Lançar Justificativas</Button>
                   <Button variant="outline"onClick={() =>setShowReportModal(true)}>
                     <FileText className="h-4 w-4 mr-2" />Gerar Relatório</Button>
                 </div>

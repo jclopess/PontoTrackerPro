@@ -132,7 +132,7 @@ export class DatabaseStorage {
     const [justificationType] = await db.select().from(justificationTypes).where(eq(justificationTypes.name, name));
     return justificationType || undefined;
   }
-  
+
   async getAllJustificationTypes(showInactive: boolean = false): Promise<JustificationType[]> {
     if (showInactive) {
       return await db.select().from(justificationTypes);
@@ -366,7 +366,7 @@ export class DatabaseStorage {
     const { userIds, date, type, reason, managerId } = data;
   
     const justificationType = await this.getJustificationTypeByName(type);
-    const abona_horas = ["vacation", "health-problems", "family-issue", "training"].includes(type);
+    const abona_horas = justificationType?.abona_horas || false;
   
     const justificationsToInsert = userIds.map(userId => ({
       userId,
@@ -585,5 +585,3 @@ export class DatabaseStorage {
 }
 
 export const storage = new DatabaseStorage();
-
-

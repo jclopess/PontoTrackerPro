@@ -322,6 +322,19 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.post("/api/admin/password-reset/:requestId/cancel", requireAdmin, async (req, res, next) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const request = await storage.cancelPasswordResetRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Solicitação não encontrada." });
+      }
+      res.status(200).json({ message: "Solicitação cancelada." });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // --- Public / User Routes ---
 
   app.get("/api/departments", async (req, res) => {
@@ -453,9 +466,16 @@ export function registerRoutes(app: Express): Server {
   // Justifications
   app.post("/api/justifications", requireAuth, async (req, res, next) => {
     try {
+      const { type } = req.body;
+      const justificationTypeDetails = await storage.getJustificationTypeByName(type);
+      if (!justificationTypeDetails) {
+        return res.status(400).json({ message: "Tipo de justificativa inválido." });
+      }
+
       const validatedData = insertJustificationSchema.parse({
         ...req.body,
         userId: req.user.id,
+        abona_horas: justificationTypeDetails.abona_horas,
       });
 
       const justification = await storage.createJustification(validatedData);
@@ -520,7 +540,11 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ message: "Acesso negado." });
       }
 
-      const abona_horas = ["vacation", "health-problems", "family-issue", "training"].includes(type);
+      const justificationTypeDetails = await storage.getJustificationTypeByName(type);
+      if (!justificationTypeDetails) {
+        return res.status(400).json({ message: "Tipo de justificativa inválido." });
+      }
+      const abona_horas = justificationTypeDetails.abona_horas;
 
       const newJustification = await storage.createJustification({
         userId,
@@ -543,7 +567,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const manager = req.user;
       const { userIds, date, type, reason } = req.body;
-
+  
       const result = await storage.createBulkJustifications({
         userIds,
         date,
@@ -551,7 +575,7 @@ export function registerRoutes(app: Express): Server {
         reason,
         managerId: manager.id,
       });
-
+  
       res.status(201).json({ message: `${result.count} justificativas criadas com sucesso.` });
     } catch (error) {
       next(error);

@@ -37,6 +37,7 @@ export const justificationTypes = pgTable("justification_types", {
   description: text("description"),
   requiresDocumentation: boolean("requires_documentation").notNull().default(false),
   requiresRecordSelection: boolean("requires_record_selection").notNull().default(false),
+  abona_horas: boolean("abona_horas").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

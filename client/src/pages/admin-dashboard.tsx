@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "../hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Users, Building, Briefcase, FileText, RotateCcw, LogOut, RefreshCw } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Building, Briefcase, FileText, RotateCcw, LogOut, RefreshCw, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "../lib/queryClient";
+import { useToast } from "../hooks/use-toast";
 import InputMask from "react-input-mask";
 import { type PasswordResetRequest } from "@shared/schema";
 import { Link } from "wouter";
@@ -376,6 +376,7 @@ export default function AdminDashboard() {
       name: formData.get('name'),
       description: formData.get('description'),
       requiresDocumentation: formData.get('requiresDocumentation') === 'on',
+      abona_horas: formData.get('abona_horas') === 'on',
     };
 
     if (editingItem) {
@@ -663,15 +664,20 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   {justificationTypes.map((type: any) => (
                      <div key={type.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h3 className="font-medium">{type.name}</h3>
-                          <p className="text-sm text-gray-500">{type.description}</p>
-                          {type.requiresDocumentation && (
-                            <p className="text-sm text-amber-600">Requer documentação</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <h3 className="font-medium">{type.name}</h3>
+                            <p className="text-sm text-gray-500">{type.description}</p>
+                            {type.requiresDocumentation && (
+                              <p className="text-sm text-amber-600">Requer documentação</p>
+                            )}
+                          </div>
+                          {type.abona_horas && (
+                            <Badge variant="outline" className="border-green-600 text-green-600">Abona Horas</Badge>
                           )}
+                          <Badge variant={type.isActive ? "default" : "secondary"}>{type.isActive ? "Ativo" : "Inativo"}</Badge>
                         </div>
-                        <Badge variant={type.isActive ? "default" : "secondary"}>{type.isActive ? "Ativo" : "Inativo"}</Badge>
                       </div>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => handleOpenJustificationTypeModal(type)}><Edit className="h-4 w-4" /></Button>
@@ -950,14 +956,21 @@ export default function AdminDashboard() {
                 <Label htmlFor="jtype-desc">Descrição</Label>
                 <Input id="jtype-desc" name="description" defaultValue={editingItem?.description} />
               </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="requiresDocumentation"
+              <div className="flex items-center space-x-2 pt-2">
+                <Switch
                   id="jtype-docs"
+                  name="requiresDocumentation"
                   defaultChecked={editingItem?.requiresDocumentation || false}
                 />
                 <Label htmlFor="jtype-docs">Requer documentação comprobatória</Label>
+              </div>
+              <div className="flex items-center space-x-2 pt-2">
+                <Switch
+                  id="jtype-abona-horas"
+                  name="abona_horas"
+                  defaultChecked={editingItem?.abona_horas || false}
+                />
+                <Label htmlFor="jtype-abona-horas">Abona as horas do dia?</Label>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
