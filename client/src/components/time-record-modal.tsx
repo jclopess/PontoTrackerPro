@@ -4,15 +4,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type TimeRecord } from "@shared/schema";
 
 interface TimeRecordModalProps {
-  record: TimeRecord | null;
+  record: Partial<TimeRecord> | null; // Pode ser parcial para criação
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void; // Callback para recarregar os dados na página principal
+  onSuccess: () => void;
 }
 
 export function TimeRecordModal({ record, open, onOpenChange, onSuccess }: TimeRecordModalProps) {
@@ -32,19 +32,22 @@ export function TimeRecordModal({ record, open, onOpenChange, onSuccess }: TimeR
         entry2: record.entry2 || "",
         exit2: record.exit2 || "",
       });
+    } else {
+      // Limpa o formulário se não houver registro (boa prática)
+      setFormData({ entry1: "", exit1: "", entry2: "", exit2: "" });
     }
   }, [record]);
 
-  const updateRecordMutation = useMutation({
-    mutationFn: (data: typeof formData) => apiRequest("PUT", `/api/manager/time-records/${record?.id}`, data),
+  const upsertRecordMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", `/api/manager/time-records/upsert`, data),
     onSuccess: () => {
-      toast({ title: "Registro atualizado com sucesso!" });
-      onSuccess(); // Chama o refetch na página do gestor
+      toast({ title: "Registro salvo com sucesso!" });
+      onSuccess();
       onOpenChange(false);
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao atualizar registro",
+        title: "Erro ao salvar registro",
         description: error.message,
         variant: "destructive",
       });
@@ -53,7 +56,13 @@ export function TimeRecordModal({ record, open, onOpenChange, onSuccess }: TimeR
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateRecordMutation.mutate(formData);
+    if (!record) return;
+
+    upsertRecordMutation.mutate({
+      ...formData,
+      userId: record.userId,
+      date: record.date,
+    });
   };
 
   if (!record) return null;
@@ -88,8 +97,8 @@ export function TimeRecordModal({ record, open, onOpenChange, onSuccess }: TimeR
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={updateRecordMutation.isPending}>
-              {updateRecordMutation.isPending ? "Salvando..." : "Salvar Ajustes"}
+            <Button type="submit" disabled={upsertRecordMutation.isPending}>
+              {upsertRecordMutation.isPending ? "Salvando..." : "Salvar Ajustes"}
             </Button>
           </DialogFooter>
         </form>

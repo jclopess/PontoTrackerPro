@@ -416,6 +416,25 @@ export class DatabaseStorage {
       ));
   }
 
+  async getJustificationsByDate(date: string, departmentId?: number): Promise<(Justification & { user: User })[]> {
+    const conditions = [eq(justifications.date, date), eq(justifications.status, "approved")];
+
+    if (departmentId) {
+      conditions.push(eq(users.departmentId, departmentId));
+    }
+
+    const results = await db
+      .select()
+      .from(justifications)
+      .innerJoin(users, eq(justifications.userId, users.id))
+      .where(and(...conditions));
+      
+    return results.map(result => ({
+      ...result.justifications,
+      user: result.users
+    }));
+  }
+  
   async getPendingJustifications(departmentId?: number): Promise<(Justification & { user: User })[]> {
     const conditions = [eq(justifications.status, "pending")];
 

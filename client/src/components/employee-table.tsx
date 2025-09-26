@@ -3,20 +3,29 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Edit } from "lucide-react";
-import { type TimeRecord } from "@shared/schema";
+import { type TimeRecord, type Justification } from "@shared/schema";
 
 interface EmployeeTableProps {
   employees: any[];
   timeRecords: any[];
-  onEditRecord: (record: TimeRecord) => void; // Prop para o evento de clique
+  justifications: Justification[];
+  selectedDate: string;
+  onEditRecord: (record: Partial<TimeRecord>) => void;
 }
 
-export function EmployeeTable({ employees, timeRecords, onEditRecord }: EmployeeTableProps) {
+export function EmployeeTable({ employees, timeRecords, justifications, selectedDate, onEditRecord }: EmployeeTableProps) {
   const getEmployeeRecord = (employeeId: number) => {
     return timeRecords.find((record) => record.userId === employeeId);
   };
 
-  const getStatusBadge = (record: any) => {
+  const getEmployeeJustification = (employeeId: number) => {
+    return justifications.find(j => j.userId === employeeId);
+  };
+
+  const getStatusBadge = (record: any, justification: any) => {
+    if (justification) {
+      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Justificado</Badge>;
+    }
     if (!record || !record.entry1) {
       return <Badge variant="secondary">Ausente</Badge>;
     }
@@ -52,6 +61,9 @@ export function EmployeeTable({ employees, timeRecords, onEditRecord }: Employee
         <TableBody>
           {employees.map((employee) => {
             const record = getEmployeeRecord(employee.id);
+            const justification = getEmployeeJustification(employee.id);
+            const canEdit = record || justification;
+
             return (
               <TableRow key={employee.id} className="hover:bg-gray-50">
                 <TableCell>
@@ -73,10 +85,10 @@ export function EmployeeTable({ employees, timeRecords, onEditRecord }: Employee
                 <TableCell className="text-sm text-gray-900">{record?.exit1 || "--:--"}</TableCell>
                 <TableCell className="text-sm text-gray-900">{record?.entry2 || "--:--"}</TableCell>
                 <TableCell className="text-sm text-gray-900">{record?.exit2 || "--:--"}</TableCell>
-                <TableCell>{getStatusBadge(record)}</TableCell>
+                <TableCell>{getStatusBadge(record, justification)}</TableCell>
                 <TableCell className="text-right">
-                  {record && (
-                    <Button variant="ghost" size="sm" onClick={() => onEditRecord(record)}>
+                  {canEdit && (
+                    <Button variant="ghost" size="sm" onClick={() => onEditRecord(record || { userId: employee.id, date: selectedDate })}>
                       <Edit className="h-4 w-4" />
                     </Button>
                   )}

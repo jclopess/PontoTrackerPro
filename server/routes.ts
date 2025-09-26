@@ -530,6 +530,23 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // ROTA ADICIONADA: Busca justificativas por data para o departamento do gestor.
+  app.get("/api/manager/justifications/by-date/:date", requireManagerOrAdmin, async (req, res, next) => {
+    try {
+      const date = req.params.date;
+      const departmentId = req.user.role === 'admin' ? undefined : req.user.departmentId;
+
+      if (req.user.role === 'manager' && !departmentId) {
+        return res.status(400).json({ message: "O gestor não está associado a um departamento." });
+      }
+
+      const justifications = await storage.getJustificationsByDate(date, departmentId);
+      res.json(justifications);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post("/api/manager/justifications", requireManagerOrAdmin, async (req, res, next) => {
     try {
       const manager = req.user;
@@ -622,6 +639,47 @@ export function registerRoutes(app: Express): Server {
       }
 
       res.json(justification);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // ROTA ADICIONADA: Cria ou atualiza um registro de ponto.
+  app.post("/api/manager/time-records/upsert", requireManagerOrAdmin, async (req, res, next) => {
+    try {
+      const { userId, date, entry1, exit1, entry2, exit2 } = req.body;
+  
+      if (!userId || !date) {
+        return res.status(400).json({ message: "userId e date são obrigatórios." });
+      }
+  
+      const existingRecord = await storage.getTimeRecord(userId, date);
+  
+      let totalHours = null;
+      if (entry1 && exit1) {
+        const entry1Minutes = parseInt(entry1.split(':')[0]) * 60 + parseInt(entry1.split(':')[1]);
+        const exit1Minutes = parseInt(exit1.split(':')[0]) * 60 + parseInt(exit1.split(':')[1]);
+        let totalMinutes = (exit1Minutes - entry1Minutes);
+  
+        if (entry2 && exit2) {
+          const entry2Minutes = parseInt(entry2.split(':')[0]) * 60 + parseInt(entry2.split(':')[1]);
+          const exit2Minutes = parseInt(exit2.split(':')[0]) * 60 + parseInt(exit2.split(':')[1]);
+          totalMinutes += (exit2Minutes - entry2Minutes);
+        }
+        totalHours = (totalMinutes / 60).toFixed(2);
+      }
+  
+      if (existingRecord) {
+        const updatedRecord = await storage.updateTimeRecord(existingRecord.id, {
+          entry1, exit1, entry2, exit2, totalHours, isAdjusted: true,
+        });
+        res.json(updatedRecord);
+      } else {
+        const newRecord = await storage.createTimeRecord({
+          userId, date, entry1, exit1, entry2, exit2, totalHours, isAdjusted: true,
+        });
+        res.status(201).json(newRecord);
+      }
     } catch (error) {
       next(error);
     }
