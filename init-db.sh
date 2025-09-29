@@ -2,7 +2,7 @@
 set -e
 
 # Caminho para o ficheiro de backup dentro do container
-BACKUP_FILE="/backups/backup_producao_v1.dump"
+BACKUP_FILE="/backups/producao_backup.backup"
 
 # Verifica se o ficheiro de backup existe
 if [ -f "$BACKUP_FILE" ]; then
