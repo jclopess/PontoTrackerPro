@@ -3,15 +3,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, LogOut, Plus, Calendar, Download } from "lucide-react";
+import { Clock, Users, LogOut, Plus, Download } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TimeRegistrationGrid } from "@/components/time-registration-grid";
 import { JustificationModal } from "@/components/justification-modal";
 import { ChangePasswordModal } from "@/components/change-password-modal";
-import { UserReportModal } from "@/components/user-report-modal"; // Importa o novo modal
+import { UserReportModal } from "@/components/user-report-modal";
 import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "wouter";
 
 export default function HomePage() {
@@ -19,7 +19,7 @@ export default function HomePage() {
   const { toast } = useToast();
   const [showJustificationModal, setShowJustificationModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [showUserReportModal, setShowUserReportModal] = useState(false); // Estado para o novo modal
+  const [showUserReportModal, setShowUserReportModal] = useState(false);
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -311,7 +311,7 @@ export default function HomePage() {
           setShowChangePasswordModal(false);
         }}
       />
-      <UserReportModal // Renderiza o novo modal
+      <UserReportModal
         open={showUserReportModal}
         onOpenChange={setShowUserReportModal}
       />

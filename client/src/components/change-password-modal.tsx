@@ -1,5 +1,3 @@
-// client/src/components/change-password-modal.tsx
-
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -11,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ChangePasswordModalProps {
   open: boolean;
-  onSuccess: () => void; // Para atualizar o estado do usuário na aplicação
+  onSuccess: () => void;
 }
 
 export function ChangePasswordModal({ open, onSuccess }: ChangePasswordModalProps) {
@@ -23,7 +21,7 @@ export function ChangePasswordModal({ open, onSuccess }: ChangePasswordModalProp
     mutationFn: (password: string) => apiRequest("POST", "/api/user/change-password", { newPassword: password }),
     onSuccess: () => {
       toast({ title: "Senha alterada com sucesso!", description: "Você já pode usar o sistema normalmente." });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] }); // Invalida o cache do usuário para buscar os dados atualizados
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       onSuccess();
     },
     onError: (error: Error) => {

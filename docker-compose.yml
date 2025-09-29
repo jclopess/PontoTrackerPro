@@ -2,7 +2,7 @@ services:
   # Serviço da Aplicação (Backend + Frontend)
   app:
     build: .
-    container_name: pointtrack_app
+    container_name: pontoTracker_app
     ports:
       - "5000:5000"
     env_file:
@@ -20,7 +20,7 @@ services:
 
   db:
     image: postgres:17
-    container_name: pointtrack_db
+    container_name: pontoTracker_db
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}

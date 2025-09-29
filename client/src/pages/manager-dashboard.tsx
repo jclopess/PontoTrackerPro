@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, Users, LogOut, FileText, TriangleAlert, CheckCircle, XCircle, ArrowLeft, PlusCircle, ShieldCheck } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmployeeTable } from "@/components/employee-table";
 import { ReportModal } from "@/components/report-modal";
