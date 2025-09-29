@@ -2,7 +2,7 @@ services:
   # Serviço da Aplicação (Backend + Frontend)
   app:
     build: .
-    container_name: pontoTracker_app
+    container_name: pointtrack_app
     ports:
       - "5000:5000"
     env_file:
@@ -20,13 +20,17 @@ services:
 
   db:
     image: postgres:17
-    container_name: pontoTracker_db
+    container_name: pointtrack_db
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Monta a pasta de backup local para dentro do container
+      - ./backup:/backups
+      # Monta o script de inicialização para ser executado na primeira vez que o container é criado
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
