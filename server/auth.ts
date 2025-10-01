@@ -15,7 +15,6 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
-// Exportado para ser usado na criação de usuários
 export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
@@ -44,7 +43,6 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
-      // Try to find user by username first, then by CPF
       let user = await storage.getUserByUsername(username);
       if (!user) {
         user = await storage.getUserByCpf(username);

@@ -4,7 +4,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
-// Define __dirname de forma compatível com ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -41,10 +40,10 @@ export default defineConfig({
     },
   },
   server: {
-    //host: "127.0.0.1", // Bind to all interfaces for Replit
-    host: "0.0.0.0", // Bind to all interfaces for Replit
+    //host: "127.0.0.1", //Usar este para Localhost apenas
+    host: "0.0.0.0",
     port: 5000,
-    allowedHosts: true, // Allow all hosts for Replit proxy
+    allowedHosts: true,
     fs: {
       strict: true,
       deny: ["**/.*"],

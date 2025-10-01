@@ -9,7 +9,6 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Usando o Pool padrão do 'pg' para conexão local
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });

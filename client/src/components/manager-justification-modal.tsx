@@ -15,8 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 interface ManagerJustificationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  employees: any[]; // Lista de funcionários para selecionar
-  onSuccess: () => void; // Para recarregar dados
+  employees: any[];
+  onSuccess: () => void;
 }
 
 export function ManagerJustificationModal({ open, onOpenChange, employees, onSuccess }: ManagerJustificationModalProps) {
@@ -29,7 +29,6 @@ export function ManagerJustificationModal({ open, onOpenChange, employees, onSuc
   });
   const [forAllEmployees, setForAllEmployees] = useState(false);
 
-  // Limpa o formulário quando o modal é fechado
   useEffect(() => {
     if (!open) {
       setFormData({ userId: "", date: "", type: "", reason: "" });
@@ -80,13 +79,11 @@ export function ManagerJustificationModal({ open, onOpenChange, employees, onSuc
     createJustificationMutation.mutate(submissionData);
   };
 
-  // Fetch justification types from API
   const { data: justificationTypes, isLoading: isLoadingTypes, isError: isErrorTypes } = useQuery({
     queryKey: ["/api/justification-types"],
     queryFn: () => apiRequest("GET", "/api/justification-types").then(res => res.json()),
   });
 
-  // Transform API data to match expected format - only active types
   const typeOptions = justificationTypes?.filter((type:any) => type.isActive).map((type:any) => ({
     value: type.name,
     label: type.name,

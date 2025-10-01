@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import { pool } from './db'; // Reutiliza a pool de conexão existente
+import { pool } from './db';
 import path from 'path';
 
 const db = drizzle(pool);
@@ -8,7 +8,6 @@ const db = drizzle(pool);
 async function runMigrations() {
   console.log("Iniciando a execução das migrações do banco de dados...");
   try {
-    // O caminho para a pasta de migrações gerada pelo Drizzle Kit
     const migrationsFolder = path.resolve('migrations');
 
     await migrate(db, { migrationsFolder });
@@ -16,9 +15,9 @@ async function runMigrations() {
     console.log("✅ Migrações aplicadas com sucesso!");
   } catch (error) {
     console.error("❌ Erro ao aplicar as migrações:", error);
-    process.exit(1); // Encerra o processo com erro
+    process.exit(1);
   } finally {
-    await pool.end(); // Fecha a conexão
+    await pool.end();
     console.log("Conexão com o banco de dados finalizada.");
   }
 }

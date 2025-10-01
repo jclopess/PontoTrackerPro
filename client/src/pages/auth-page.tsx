@@ -43,7 +43,6 @@ export default function AuthPage() {
     passwordResetMutation.mutate(resetForm.cpf);
   };
 
-  // Redirect if already logged in - after all hooks
   if (user) {
     if (user.role === "admin") {
       return <Redirect to="/admin" />;

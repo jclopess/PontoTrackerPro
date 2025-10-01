@@ -27,10 +27,8 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // Lógica condicional com importação dinâmica
   if (process.env.NODE_ENV === "development") {
     log("Running in development mode, setting up Vite...");
-    // Importa o setupVite dinamicamente apenas em desenvolvimento
     const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {

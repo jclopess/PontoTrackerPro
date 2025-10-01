@@ -25,21 +25,14 @@ export function JustificationModal({ open, onOpenChange }: JustificationModalPro
     recordToAdjust: "",
   });
 
-  // Fetch justification types from API
   const { data: justificationTypes, isLoading: isLoadingTypes, isError: isErrorTypes } = useQuery({
     queryKey: ["/api/justification-types"],
     queryFn: () => apiRequest("GET", "/api/justification-types").then(res => res.json()),
   });
 
-  // Find selected type details for validation
   const selectedType = justificationTypes?.find(type => type.name === formData.type);
-  
-  // Condição para o aviso de comprovante físico
   const needsProof = selectedType?.requiresDocumentation || false;
-  
-  // NOVA CONDIÇÃO para o aviso de "outros motivos" - totalmente baseado no schema
   const mightNeedMoreInfo = formData.type !== "" && !needsProof && !selectedType?.requiresRecordSelection;
-
 
   useEffect(() => {
     if (!open) {
@@ -79,7 +72,6 @@ export function JustificationModal({ open, onOpenChange }: JustificationModalPro
     submitJustificationMutation.mutate(formData);
   };
 
-  // Transform API data to match expected format
   const typeOptions = justificationTypes?.filter(type => type.isActive).map(type => ({
     value: type.name,
     label: type.name,

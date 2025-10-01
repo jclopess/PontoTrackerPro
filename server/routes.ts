@@ -83,7 +83,6 @@ export function registerRoutes(app: Express): Server {
 
         let dataToUpdate: Partial<InsertUser> = {};
 
-        // Adiciona a atualização de senha ao objeto, se fornecida
         if (password && typeof password === 'string' && password.length >= 6) {
             dataToUpdate.password = await hashPassword(password);
             dataToUpdate.mustChangePassword = true;
@@ -91,7 +90,6 @@ export function registerRoutes(app: Express): Server {
             return res.status(400).json({ message: "A senha deve ter pelo menos 6 caracteres." });
         }
 
-        // Valida e processa outros dados do usuário, mesclando com o objeto existente
         if (Object.keys(userData).length > 0) {
             const validatedData = insertUserSchema.omit({ password: true }).partial().parse(userData);
 
@@ -245,7 +243,7 @@ export function registerRoutes(app: Express): Server {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      if (error.code === '23505') { // PostgreSQL unique constraint violation
+      if (error.code === '23505') {
         return res.status(409).json({ message: "Já existe um tipo de justificativa com este nome" });
       }
       next(error);
@@ -264,7 +262,7 @@ export function registerRoutes(app: Express): Server {
       if (error instanceof z.ZodError){
         return res.status(400).json({message: "Dados inválidos", errors: error.errors});
       }
-      if (error.code === '23505') { // PostgreSQL unique constraint violation
+      if (error.code === '23505') {
         return res.status(409).json({ message: "Já existe um tipo de justificativa com este nome" });
       }
       next(error);
@@ -336,7 +334,6 @@ export function registerRoutes(app: Express): Server {
   });
 
   // --- Public / User Routes ---
-
   app.get("/api/departments", async (req, res) => {
     try {
       const departments = await storage.getAllDepartments();
@@ -348,7 +345,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.get("/api/justification-types", requireAuth, async (req, res) => {
-    res.json(await storage.getAllJustificationTypes(false)); // Only active types
+    res.json(await storage.getAllJustificationTypes(false));
   });
 
 
@@ -499,7 +496,6 @@ export function registerRoutes(app: Express): Server {
   });
 
   // --- Manager Endpoints ---
-  
   app.get("/api/manager/employees", requireManagerOrAdmin, async (req, res, next) => {
     try {
       const departmentId = req.user.role === 'admin' ? undefined : req.user.departmentId;
@@ -530,7 +526,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // ROTA ADICIONADA: Busca justificativas por data para o departamento do gestor.
   app.get("/api/manager/justifications/by-date/:date", requireManagerOrAdmin, async (req, res, next) => {
     try {
       const date = req.params.date;
@@ -644,7 +639,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // ROTA ADICIONADA: Cria ou atualiza um registro de ponto.
   app.post("/api/manager/time-records/upsert", requireManagerOrAdmin, async (req, res, next) => {
     try {
       const { userId, date, entry1, exit1, entry2, exit2 } = req.body;
@@ -737,7 +731,6 @@ export function registerRoutes(app: Express): Server {
   });
 
   // --- Report Generation ---
-
   const handleReportGeneration = async (userId: number, month: string, startDate: string, endDate: string) => {
     const user = await storage.getUser(userId);
     if (!user) throw new Error("Usuário não encontrado.");
@@ -773,8 +766,6 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Parâmetros inválidos.", errors: validation.error.flatten() });
       }
       const { userId, month, startDate, endDate } = validation.data;
-
-      // Validação do intervalo de datas
       const start = new Date(startDate);
       const end = new Date(endDate);
       if (differenceInDays(end, start) > 31) {
@@ -800,8 +791,6 @@ export function registerRoutes(app: Express): Server {
       }
       const { month, startDate, endDate } = validation.data;
       const userId = req.user.id;
-
-      // Validação do intervalo de datas
       const start = new Date(startDate);
       const end = new Date(endDate);
       if (differenceInDays(end, start) > 31) {

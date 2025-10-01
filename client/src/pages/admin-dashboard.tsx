@@ -59,7 +59,6 @@ export default function AdminDashboard() {
     queryKey: ["/api/admin/password-reset-requests"]
   });
 
-  // REFETCH AUTOMÁTICO
   useEffect(() => {
     refetchDepartments();
   }, [showInactiveDepartments, refetchDepartments]);

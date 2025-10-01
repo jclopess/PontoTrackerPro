@@ -11,5 +11,5 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL,
   },
-  tablesFilter: ["!session"], //Ignora a tabela de sessões do next-auth na migração.
+  tablesFilter: ["!session"],
 });

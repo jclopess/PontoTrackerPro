@@ -1,7 +1,6 @@
 import { hashPassword } from "./auth";
 
 async function generate() {
-  // Coloque a senha que você deseja usar aqui
   const password = "123456";
 
   console.log(`Gerando hash para a senha: "${password}"`);

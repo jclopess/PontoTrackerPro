@@ -3,7 +3,6 @@ import { Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 
-// A prop `children` nos permite "envolver" outros componentes
 export function ProtectedRoute({
   children,
   requireManager = false,
@@ -15,7 +14,6 @@ export function ProtectedRoute({
 }) {
   const { user, isLoading } = useAuth();
 
-  // 1. Enquanto a autenticação está sendo verificada, mostramos um loader.
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,12 +22,10 @@ export function ProtectedRoute({
     );
   }
 
-  // 2. Se, após a verificação, não houver usuário, redirecionamos para o login.
   if (!user) {
     return <Redirect to="/auth" />;
   }
 
-  // 3. Verificamos as permissões (roles).
   if (requireAdmin && user.role !== "admin") {
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -56,6 +52,5 @@ export function ProtectedRoute({
     );
   }
 
-  // 4. Se tudo estiver certo, renderizamos o componente filho (a página).
   return <>{children}</>;
 }

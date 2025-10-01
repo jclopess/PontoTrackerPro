@@ -81,7 +81,7 @@ export const timeRecords = pgTable("time_records", {
   entry2: text("entry2"),
   exit2: text("exit2"),
   totalHours: decimal("total_hours", { precision: 4, scale: 2 }),
-  isAdjusted: boolean("is_adjusted").default(false).notNull(), // Indicates if the record was adjusted
+  isAdjusted: boolean("is_adjusted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -90,8 +90,8 @@ export const justifications = pgTable("justifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   date: text("date").notNull(),
-  type: text("type").notNull(), // "absence", "late", "early-leave", "error" - will migrate to typeId later
-  reason: text("reason").notNull(), //e.g., "entry1", "exit1", "entry2", "exit2", "all"
+  type: text("type").notNull(),
+  reason: text("reason").notNull(),
   recordToAdjust: text("record_to_adjust"),
   abona_horas: boolean("abona_horas").default(false).notNull(),
   status: text("status").notNull().default("pending"), // "pending", "approved", "rejected"
@@ -128,7 +128,6 @@ export const employmentTypesRelations = relations(employmentTypes, ({ many }) =>
 
 // Justification types relations
 export const justificationTypesRelations = relations(justificationTypes, ({ many }) => ({
-  // TODO: Add relation to justifications when migrated to use typeId foreign key
 }));
 
 // Password reset requests relations

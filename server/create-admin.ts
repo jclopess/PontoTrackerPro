@@ -5,16 +5,14 @@ import { pool } from "./db";
 async function createAdmin() {
   console.log("Iniciando a criação do usuário administrador...");
 
-  // --- Defina aqui os dados do seu administrador ---
   const adminData = {
     cpf: "000.000.000-00",
     username: "admin",
     name: "Administrador",
-    password: "admin", // Senha temporária, troque se desejar
+    password: "admin",
     role: "admin",
     status: "active",
   };
-  // ---------------------------------------------
 
   try {
     const userExists = await storage.getUserByCpf(adminData.cpf);
@@ -36,7 +34,7 @@ async function createAdmin() {
   } catch (error) {
     console.error("❌ Erro ao criar o usuário administrador:", error);
   } finally {
-    await pool.end(); // Fecha a conexão com o banco de dados
+    await pool.end();
     console.log("Script finalizado.");
   }
 }

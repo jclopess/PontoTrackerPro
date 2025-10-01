@@ -34,7 +34,6 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
-// Esta função será usada apenas em PRODUÇÃO
 export function serveStatic(app: Express) {
   const distPath = path.resolve(process.cwd(), "dist/public");
 
@@ -43,11 +42,7 @@ export function serveStatic(app: Express) {
       `Could not find the build directory: ${distPath}. Make sure to run 'npm run build' first.`
     );
   }
-
-  // Serve os arquivos estáticos (JS, CSS, imagens) da pasta 'dist/public'
   app.use(express.static(distPath));
-
-  // Rota "catch-all" que serve o index.html para qualquer outra requisição.
   app.use("*", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });

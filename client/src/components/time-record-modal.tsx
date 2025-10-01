@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { type TimeRecord } from "@shared/schema";
 
 interface TimeRecordModalProps {
-  record: Partial<TimeRecord> | null; // Pode ser parcial para criação
+  record: Partial<TimeRecord> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
@@ -33,7 +33,6 @@ export function TimeRecordModal({ record, open, onOpenChange, onSuccess }: TimeR
         exit2: record.exit2 || "",
       });
     } else {
-      // Limpa o formulário se não houver registro (boa prática)
       setFormData({ entry1: "", exit1: "", entry2: "", exit2: "" });
     }
   }, [record]);

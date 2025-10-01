@@ -4,7 +4,6 @@ import path from 'path';
 import { User, TimeRecord, Justification, HourBank } from '../shared/schema';
 import { eachDayOfInterval, format, getDay } from 'date-fns';
 
-// Tipos e constantes
 interface ReportData {
   user: User;
   timeRecords: TimeRecord[];
@@ -34,13 +33,6 @@ const PAGE_OPTIONS: PDFKit.PDFDocumentOptions = { margin: 40, size: 'A4' };
 const FONT_NORMAL = 'Helvetica';
 const FONT_BOLD = 'Helvetica-Bold';
 
-// Funções auxiliares para gerar o PDF
-
-/**
- * Converte horas decimais para o formato HH:MM.
- * @param decimalValue - As horas em formato decimal (ex: 8.5 para 8h 30m).
- * @returns Uma string no formato HH:MM.
- */
 function decimalToHHMM(decimalValue: string | number | null | undefined): string {
   if (decimalValue === null || decimalValue === undefined) {
     return '00:00';
@@ -48,7 +40,6 @@ function decimalToHHMM(decimalValue: string | number | null | undefined): string
   
   const decimalHours = typeof decimalValue === 'string' ? parseFloat(decimalValue) : decimalValue;
 
-  // Trata saldos negativos para o banco de horas
   const sign = decimalHours < 0 ? "-" : "";
   const absDecimalHours = Math.abs(decimalHours);
 
@@ -56,16 +47,12 @@ function decimalToHHMM(decimalValue: string | number | null | undefined): string
   const minutesFraction = absDecimalHours - hours;
   const minutes = Math.round(minutesFraction * 60);
 
-  // Preenche com zeros à esquerda
   const paddedHours = String(hours).padStart(2, '0');
   const paddedMinutes = String(minutes).padStart(2, '0');
 
   return `${sign}${paddedHours}:${paddedMinutes}`;
 }
 
-/**
- * Gera o cabeçalho do relatório.
- */
 function generateHeader(doc: PDFKit.PDFDocument, data: ReportData) {
   const logoPath = path.resolve(process.cwd(), 'attached_assets', 'logo.png');
   if (fs.existsSync(logoPath)) {
@@ -91,10 +78,6 @@ function generateHeader(doc: PDFKit.PDFDocument, data: ReportData) {
   doc.moveDown(0.5);
 }
 
-/**
- * Gera a tabela principal com os registros diários.
- */
-
 function generateTable(doc: PDFKit.PDFDocument, data: ReportData) {
   doc.fontSize(12).font(FONT_BOLD).text('Registros Diários', { underline: true, align: 'center' });
 
@@ -102,7 +85,6 @@ function generateTable(doc: PDFKit.PDFDocument, data: ReportData) {
   const itemWidth = 75;
   const startX = PAGE_OPTIONS.margin;
 
-  // Cabeçalho da tabela
   doc.fontSize(9).font(FONT_BOLD);
   doc.text('Data', startX, tableTop);
   doc.text('Entrada 1', startX + itemWidth, tableTop);
@@ -114,7 +96,6 @@ function generateTable(doc: PDFKit.PDFDocument, data: ReportData) {
   doc.strokeColor("#cccccc").lineWidth(1).moveTo(startX, doc.y).lineTo(doc.page.width - startX, doc.y).stroke();
   doc.moveDown(0.5);
 
-  // Linhas da tabela
   const interval = {
     start: new Date(`${data.startDate}T12:00:00Z`),
     end: new Date(`${data.endDate}T12:00:00Z`)
@@ -135,7 +116,7 @@ function generateTable(doc: PDFKit.PDFDocument, data: ReportData) {
     doc.text(formattedDate, startX, rowY);
 
     if (record) {
-        const dailyHoursString = decimalToHHMM(record.totalHours); // <-- CORREÇÃO APLICADA
+        const dailyHoursString = decimalToHHMM(record.totalHours);
         const textOptions = { underline: record.isAdjusted, align: 'center' as const, width: itemWidth };
 
         doc.text(record.entry1 || '--:--', startX + itemWidth, rowY, textOptions);
@@ -171,9 +152,6 @@ function generateTable(doc: PDFKit.PDFDocument, data: ReportData) {
   });
 }
 
-/**
- * Gera o rodapé com o resumo e as assinaturas.
- */
 function generateFooter(doc: PDFKit.PDFDocument, data: ReportData) {
     const footerY = doc.page.height - 150;
     const startX = PAGE_OPTIONS.margin;
@@ -197,9 +175,6 @@ function generateFooter(doc: PDFKit.PDFDocument, data: ReportData) {
     doc.text('Assinatura do Gestor', startX, signatureY + 15, { align: 'right' });
 }
 
-
-// --- Função Principal ---
-
 export function generateMonthlyReportPDF(data: ReportData): Promise<Buffer> {
   return new Promise((resolve) => {
     const doc = new PDFDocument(PAGE_OPTIONS);
@@ -208,7 +183,6 @@ export function generateMonthlyReportPDF(data: ReportData): Promise<Buffer> {
     doc.on('data', buffers.push.bind(buffers));
     doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-    // Estrutura do documento
     generateHeader(doc, data);
     generateTable(doc, data);
     generateFooter(doc, data);
