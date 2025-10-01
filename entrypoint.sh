@@ -4,7 +4,7 @@ set -e
 echo "Rodando as migrações do banco de dados..."
 
 # Executa as migrações do banco de dados
-npm run db:migrate
+#npm run db:migrate
 
 # Cria o usuário administrador se não existir
 echo "Criando usuário administrador..."

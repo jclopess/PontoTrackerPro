@@ -3,6 +3,7 @@ services:
   app:
     build: .
     container_name: pointtrack_app
+    restart: unless-stopped
     ports:
       - "5000:5000"
     env_file:
@@ -28,7 +29,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Monta a pasta de backup local para dentro do container
-      - ./backup:/backups
+      - ./backups/producao_backup.backup:/backups/producao_backup.backup
       # Monta o script de inicialização para ser executado na primeira vez que o container é criado
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:

@@ -41,7 +41,8 @@ export default defineConfig({
     },
   },
   server: {
-    host: "127.0.0.1", // Bind to all interfaces for Replit
+    //host: "127.0.0.1", // Bind to all interfaces for Replit
+    host: "0.0.0.0", // Bind to all interfaces for Replit
     port: 5000,
     allowedHosts: true, // Allow all hosts for Replit proxy
     fs: {

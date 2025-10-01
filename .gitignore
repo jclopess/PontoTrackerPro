@@ -11,3 +11,4 @@ vite.config.ts.*
 launch.json
 task.json
 settings.json
+backups
